@@ -8,172 +8,183 @@
 
   tasks:
 
-    # -----------------------------------------------------
-    # Create VPC
-    # -----------------------------------------------------
-
-    - name: Create Vprofile VPC
+    - name: Create VPC
       ec2_vpc_net:
-        name: "{{ vpc_name }}"
-        cidr_block: "{{ vpcCidr }}"
-        region: "{{ region }}"
-        dns_support: yes
-        dns_hostnames: yes
-        tenancy: default
-        state: "{{ state }}"
+        name: "{{vpc_name}}"
+        cidr_block: "{{vpcCidr}}"
+        region: "{{region}}"
+        state: "{{state}}"
       register: vpcout
 
-    # -----------------------------------------------------
-    # Create Public Subnets
-    # -----------------------------------------------------
 
     - name: create Public Subnet 1 in Zone1
       ec2_vpc_subnet:
-        vpc_id: "{{ vpcout.vpc.id }}"
-        region: "{{ region }}"
-        az: "{{ zone1 }}"
-        state: "{{ state }}"
-        cidr: "{{ PubSub1Cidr }}"
+        vpc_id: "{{vpcout.vpc.id}}"
+        region: "{{region}}"
+        az: "{{zone1}}"
+        state: "{{state}}"
+        cidr: "{{PubSub1Cidr}}"
         map_public: yes
         tags:
           Name: vprofile-pubsub1
       register: pubsub1_out
 
+
     - name: create Public Subnet 2 in Zone2
       ec2_vpc_subnet:
-        vpc_id: "{{ vpcout.vpc.id }}"
-        region: "{{ region }}"
-        az: "{{ zone2 }}"
-        state: "{{ state }}"
-        cidr: "{{ PubSub2Cidr }}"
+        vpc_id: "{{vpcout.vpc.id}}"
+        region: "{{region}}"
+        az: "{{zone2}}"
+        state: "{{state}}"
+        cidr: "{{PubSub2Cidr}}"
         map_public: yes
         tags:
           Name: vprofile-pubsub2
       register: pubsub2_out
 
+
     - name: create Public Subnet 3 in Zone3
       ec2_vpc_subnet:
-        vpc_id: "{{ vpcout.vpc.id }}"
-        region: "{{ region }}"
-        az: "{{ zone3 }}"
-        state: "{{ state }}"
-        cidr: "{{ PubSub3Cidr }}"
+        vpc_id: "{{vpcout.vpc.id}}"
+        region: "{{region}}"
+        az: "{{zone3}}"
+        state: "{{state}}"
+        cidr: "{{PubSub3Cidr}}"
         map_public: yes
         tags:
           Name: vprofile-pubsub3
       register: pubsub3_out
 
-    # -----------------------------------------------------
-    # Create Private Subnets
-    # -----------------------------------------------------
 
     - name: create Private Subnet 1 in Zone1
       ec2_vpc_subnet:
-        vpc_id: "{{ vpcout.vpc.id }}"
-        region: "{{ region }}"
-        az: "{{ zone1 }}"
-        state: "{{ state }}"
-        cidr: "{{ PrivSub1Cidr }}"
-        map_public: no
+        vpc_id: "{{vpcout.vpc.id}}"
+        region: "{{region}}"
+        az: "{{zone1}}"
+        state: "{{state}}"
+        cidr: "{{PrivSub1Cidr}}"
+        map_public: yes
         tags:
           Name: vprofile-privsub1
       register: privsub1_out
 
+
     - name: create Private Subnet 2 in Zone2
       ec2_vpc_subnet:
-        vpc_id: "{{ vpcout.vpc.id }}"
-        region: "{{ region }}"
-        az: "{{ zone2 }}"
-        state: "{{ state }}"
-        cidr: "{{ PrivSub2Cidr }}"
-        map_public: no
+        vpc_id: "{{vpcout.vpc.id}}"
+        region: "{{region}}"
+        az: "{{zone2}}"
+        state: "{{state}}"
+        cidr: "{{PrivSub2Cidr}}"
+        map_public: yes
         tags:
           Name: vprofile-privsub2
       register: privsub2_out
 
+
     - name: create Private Subnet 3 in Zone3
       ec2_vpc_subnet:
-        vpc_id: "{{ vpcout.vpc.id }}"
-        region: "{{ region }}"
-        az: "{{ zone3 }}"
-        state: "{{ state }}"
-        cidr: "{{ PrivSub3Cidr }}"
-        map_public: no
+        vpc_id: "{{vpcout.vpc.id}}"
+        region: "{{region}}"
+        az: "{{zone3}}"
+        state: "{{state}}"
+        cidr: "{{PrivSub3Cidr}}"
+        map_public: yes
         tags:
           Name: vprofile-privsub3
       register: privsub3_out
 
-    # -----------------------------------------------------
-    # Create Internet Gateway
-    # -----------------------------------------------------
 
     - name: Create Internet Gateway
       ec2_vpc_igw:
-        vpc_id: "{{ vpcout.vpc.id }}"
-        region: "{{ region }}"
-        state: "{{ state }}"
-        tags:
-          Name: vprofile-igw
+        vpc_id: "{{vpcout.vpc.id}}"
+        region: "{{region}}"
+        state: "{{state}}"
       register: igw_out
 
-    # -----------------------------------------------------
-    # Create Public Route Table
-    # -----------------------------------------------------
 
     - name: Create Public Route Table
       ec2_vpc_route_table:
-        vpc_id: "{{ vpcout.vpc.id }}"
-        region: "{{ region }}"
-        state: "{{ state }}"
+        vpc_id: "{{vpcout.vpc.id}}"
+        region: "{{region}}"
+        state: "{{state}}"
         tags:
           Name: vprofile-pub-rt
-      register: pub_rt_out
+      register: pubrt_out
 
-    # -----------------------------------------------------
-    # Add Internet Route
-    # -----------------------------------------------------
 
-    - name: Add route to Internet Gateway
+    - name: Add Public Route
       ec2_vpc_route_table:
-        vpc_id: "{{ vpcout.vpc.id }}"
-        region: "{{ region }}"
-        route_table_id: "{{ pub_rt_out.route_table.id }}"
+        vpc_id: "{{vpcout.vpc.id}}"
+        region: "{{region}}"
+        route_table_id: "{{pubrt_out.route_table.id}}"
         routes:
           - dest: 0.0.0.0/0
-            gateway_id: "{{ igw_out.gateway_id }}"
-        state: "{{ state }}"
-      register: pub_route_out
+            gateway_id: "{{igw_out.gateway_id}}"
+        state: "{{state}}"
+      register: pubroute_out
 
-    # -----------------------------------------------------
-    # Associate Public Subnets with Public Route Table
-    # -----------------------------------------------------
 
-    - name: Associate Public Subnet1
+    - name: Associate Public Subnets
       ec2_vpc_route_table:
-        vpc_id: "{{ vpcout.vpc.id }}"
-        region: "{{ region }}"
-        route_table_id: "{{ pub_rt_out.route_table.id }}"
+        vpc_id: "{{vpcout.vpc.id}}"
+        region: "{{region}}"
+        route_table_id: "{{pubrt_out.route_table.id}}"
         subnets:
-          - "{{ pubsub1_out.subnet.id }}"
-        state: "{{ state }}"
-      register: pubsub1_assoc
+          - "{{pubsub1_out.subnet.id}}"
+          - "{{pubsub2_out.subnet.id}}"
+          - "{{pubsub3_out.subnet.id}}"
+        state: "{{state}}"
+      register: pubassoc_out
 
-    - name: Associate Public Subnet2
-      ec2_vpc_route_table:
-        vpc_id: "{{ vpcout.vpc.id }}"
-        region: "{{ region }}"
-        route_table_id: "{{ pub_rt_out.route_table.id }}"
-        subnets:
-          - "{{ pubsub2_out.subnet.id }}"
-        state: "{{ state }}"
-      register: pubsub2_assoc
 
-    - name: Associate Public Subnet3
+    - name: Allocate Elastic IP
+      ec2_eip:
+        region: "{{region}}"
+        state: "{{state}}"
+      register: eip_out
+
+
+    - name: Create NAT Gateway
+      ec2_vpc_nat_gateway:
+        subnet_id: "{{pubsub1_out.subnet.id}}"
+        allocation_id: "{{eip_out.allocation_id}}"
+        region: "{{region}}"
+        state: "{{state}}"
+        wait: yes
+      register: natgw_out
+
+
+    - name: Create Private Route Table
       ec2_vpc_route_table:
-        vpc_id: "{{ vpcout.vpc.id }}"
-        region: "{{ region }}"
-        route_table_id: "{{ pub_rt_out.route_table.id }}"
+        vpc_id: "{{vpcout.vpc.id}}"
+        region: "{{region}}"
+        state: "{{state}}"
+        tags:
+          Name: vprofile-priv-rt
+      register: privrt_out
+
+
+    - name: Add Private Route
+      ec2_vpc_route_table:
+        vpc_id: "{{vpcout.vpc.id}}"
+        region: "{{region}}"
+        route_table_id: "{{privrt_out.route_table.id}}"
+        routes:
+          - dest: 0.0.0.0/0
+            nat_gateway_id: "{{natgw_out.nat_gateway_id}}"
+        state: "{{state}}"
+      register: privroute_out
+
+
+    - name: Associate Private Subnets
+      ec2_vpc_route_table:
+        vpc_id: "{{vpcout.vpc.id}}"
+        region: "{{region}}"
+        route_table_id: "{{privrt_out.route_table.id}}"
         subnets:
-          - "{{ pubsub3_out.subnet.id }}"
-        state: "{{ state }}"
-      register: pubsub3_assoc
+          - "{{privsub1_out.subnet.id}}"
+          - "{{privsub2_out.subnet.id}}"
+          - "{{privsub3_out.subnet.id}}"
+        state: "{{state}}"
+      register: privassoc_out
