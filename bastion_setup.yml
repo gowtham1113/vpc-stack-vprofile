@@ -4,18 +4,14 @@
   connection: local
   gather_facts: no
 
+  vars_files:
+    - vars/bastion_setup.yml
+    - vars/output_vars.yml
+
   tasks:
 
-    - name: Import VPC setup variables
-      include_vars:
-        file: vars/bastion_setup.yml
-
-    - name: Import output variables
-      include_vars:
-        file: vars/output_vars.yml
-
-    - name: Create Vprofile EC2 key
-      ec2_key:
+    - name: Create Vprofile EC2 Key
+      amazon.aws.ec2_key:
         name: "{{ keyName }}"
         region: "{{ region }}"
       register: key_out
@@ -28,7 +24,7 @@
       when: key_out.changed
 
     - name: Create Security Group for Bastion Host
-      ec2_group:
+      amazon.aws.ec2_group:
         name: Bastion-host-sg
         description: Allow port 22 from MYIP and all ports within SG
         vpc_id: "{{ vpcid }}"
@@ -41,7 +37,7 @@
       register: BastionSG_out
 
     - name: Create Bastion Host EC2
-      ec2:
+      amazon.aws.ec2:
         key_name: "{{ keyName }}"
         region: "{{ region }}"
         instance_type: "{{ instanceType }}"
@@ -63,7 +59,7 @@
       register: bastionHost_out
 
     - name: Create EC2 in private subnet 1
-      ec2:
+      amazon.aws.ec2:
         key_name: "{{ keyName }}"
         region: "{{ region }}"
         instance_type: "{{ instanceType }}"
@@ -84,7 +80,7 @@
       register: privsub1Instance_out
 
     - name: Create EC2 in private subnet 3
-      ec2:
+      amazon.aws.ec2:
         key_name: "{{ keyName }}"
         region: "{{ region }}"
         instance_type: "{{ instanceType }}"
