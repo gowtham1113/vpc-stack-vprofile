@@ -144,6 +144,7 @@
       allocation_id: "{{ eip1_out.allocation_id }}"
       region: "{{ region }}"
       state: present
+      wait: yes
     register: natgw1_out
 
   # -------------------------
